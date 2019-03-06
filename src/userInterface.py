@@ -29,7 +29,7 @@ class Application(Frame):
         self.submit_button.grid(row=2, column=0, sticky=W)
 
         # Create text
-        self.text = Text(self, width=35, height=5, wrap=WORD)
+        self.text = Text(self, state=DISABLED, width=35, height=5, wrap=WORD)
         self.text.grid(row=3, column=0, columnspan=2, sticky=W)
 
         # Create a counter button
@@ -37,6 +37,12 @@ class Application(Frame):
         self.button["text"] = "Total clicks: 0"
         self.button["command"] = self.update_counter
         self.button.grid()
+
+        # Create a button that goes to another GUI
+        self.newtab = Button(self)
+        self.newtab["text"] = "Go to another page"
+        self.newtab["command"] = self.goto_new_window
+        self.newtab.grid()
 
     def update_counter(self):
         """" Update the counter and display it on the button """
@@ -52,15 +58,22 @@ class Application(Frame):
 
         else:
             message = "Access denied"
-
+        self.text["state"] = NORMAL
         self.text.delete(0.0, END)
         self.text.insert(0.0, message)
+        self.text["state"] = DISABLED
 
+    def goto_new_window(self):
+        newpage.mainloop()
 
 
 root = Tk()
 root.title("Three buttons")
 root.geometry("300x300")
+
+newpage = Tk()
+newpage.title("New page")
+newpage.geometry("300x300")
 
 app = Application(root)
 
