@@ -1,18 +1,28 @@
+
+
+
+
+
+
+
+
+
+"""
 from tkinter import *
 
 
 class Application(Frame):
-    """" A GUI Application with buttons """
+
 
     def __init__(self, master):
-        """" Initializes the frame """
+
         Frame.__init__(self, master)
         self.grid()
         self.button_clicks = 0
         self.create_widgets()
 
     def create_widgets(self):
-        """" Create button and text """
+
         # Create a label
         self.instruction = Label(self)
         self.instruction["text"] = "Enter your IP Address"
@@ -45,12 +55,12 @@ class Application(Frame):
         self.newtab.grid()
 
     def update_counter(self):
-        """" Update the counter and display it on the button """
+
         self.button_clicks += 1
         self.button["text"] = "Total clicks: " + str(self.button_clicks)
 
     def reveal(self):
-        """ Display message based on password typed """
+
         content = self.pswd.get()
 
         if (content == "password"):
@@ -78,3 +88,4 @@ newpage.geometry("300x300")
 app = Application(root)
 
 root.mainloop()
+"""
