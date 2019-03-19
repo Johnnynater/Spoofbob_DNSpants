@@ -1,11 +1,26 @@
+from scapy.all import *
+from scapy.layers.l2 import *
+
+# IP_REDIR:  The 'fake' IP Address of the spoofed domain
+# IP_REAL:      The actual IP Address of the spoofed domain
+# IP_VICTIM:    The IP Address of the victim
+# IP_VM:        The IP Address of the virtual machine
+# DOMAIN:       The domain to be spoofed
 
 
+class ARP:
+    def __init__(self, src, dst, hwsrc, psrc, hwdst, pdst):
+        self.src = src
+        self.dst = dst
+        self.hwsrc = hwsrc
+        self.psrc = psrc
+        self.hwdst = hwdst
+        self.pdst = pdst
 
-
-
-
-
-
+    @staticmethod
+    def spoof(src, dst, hwsrc, psrc, hwdst, pdst):
+        print("sicko mate gj")
+        print("easy peasy")
 
 """
 from tkinter import *
