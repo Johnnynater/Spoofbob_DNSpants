@@ -1,7 +1,10 @@
-from src import DNS
-from src import ARP
+import DNS
+import ARP
+import NetworkScan
 from tkinter import *
 from tkinter import ttk
+from tkinter import messagebox
+import tkinter as tk
 
 
 class Application(Tk):
@@ -24,55 +27,59 @@ class Application(Tk):
         tab_control.pack(expand=1, fill="both")
 
         """ ARP Poisoning tab interface """
-        # Ethernet section
-        eth = ttk.LabelFrame(self.tab2, text="Ethernet")
+        # FILL IN GATEWAY AND TARGET
+        eth = ttk.LabelFrame(self.tab2, text="Gateway and Target")
         eth.grid(column=0, row=0, padx=10, pady=10, ipadx=1, sticky=NW)
 
-        ## Destination IP
-        src = ttk.Label(eth, text="Destination IP address: ")
-        src.grid(column=0, row=0, sticky=W)
-        self.src_te = Entry(eth, width=20)
-        self.src_te.grid(column=1, row=0)
+        ## Gateway IP
+        g_ip = ttk.Label(eth, text="Gateway IP: ")
+        g_ip.grid(column=0, row=0, sticky=W)
+        self.g_ip_te = Entry(eth, width=20)
+        self.g_ip_te.grid(column=1, row=0)
 
-        ## Source IP
-        dst = ttk.Label(eth, text="Source IP address: ")
-        dst.grid(column=0, row=1, pady=3, sticky=W,)
-        self.dst_te = Entry(eth, width=20)
-        self.dst_te.grid(column=1, row=1, pady=3)
-
-        # ARP Section
-        arp_header = ttk.LabelFrame(self.tab2, text="ARP")
-        arp_header.grid(column=0, row=1, padx=10, pady=0, ipadx=1, sticky=NW)
-
-        ## Sender MAC
-        hwsrc = ttk.Label(arp_header, text="Sender MAC address:")
-        hwsrc.grid(column=0, row=0, sticky=W)
-        self.hwsrc_te = Entry(arp_header, width=20)
-        self.hwsrc_te.grid(column=1, row=0)
-
-        ## Sender IP
-        psrc = ttk.Label(arp_header, text="Sender IP address: ")
-        psrc.grid(column=0, row=1, sticky=W, pady=3)
-        self.psrc_te = Entry(arp_header, width=20)
-        self.psrc_te.grid(column=1, row=1, pady=3)
-
-        ## Target MAC
-        hwdst = ttk.Label(arp_header, text="Target MAC address:    ")
-        hwdst.grid(column=0, row=2, sticky=W)
-        self.hwdst_te = Entry(arp_header, width=20)
-        self.hwdst_te.grid(column=1, row=2)
+        ## Gateway MAC
+        g_mac = ttk.Label(eth, text="Gateway MAC: ")
+        g_mac.grid(column=0, row=1, pady=3, sticky=W,)
+        self.g_mac_te = Entry(eth, width=20)
+        self.g_mac_te.grid(column=1, row=1, pady=3)
 
         ## Target IP
-        pdst = ttk.Label(arp_header, text="Target IP address: ")
-        pdst.grid(column=0, row=3, sticky=W, pady=3)
-        self.pdst_te = Entry(arp_header, width=20)
-        self.pdst_te.grid(column=1, row=3, pady=3)
+        t_ip = ttk.Label(eth, text="Target IP: ")
+        t_ip.grid(column=0, row=2, sticky=W)
+        self.t_ip_te = Entry(eth, width=20)
+        self.t_ip_te.grid(column=1, row=2)
+
+        ## Target MAC
+        t_mac = ttk.Label(eth, text="Target MAC: ")
+        t_mac.grid(column=0, row=3, sticky=W, pady=3)
+        self.t_mac_te = Entry(eth, width=20)
+        self.t_mac_te.grid(column=1, row=3, pady=3)
+
+        # FILL IN ADDITIONAL REQUIREMENTS
+        arp_header = ttk.LabelFrame(self.tab2, text="Advanced settings")
+        arp_header.grid(column=0, row=1, padx=10, pady=0, ipadx=1, sticky=NW)
+
+        ## Attack frequency
+        freq = ttk.Label(arp_header, text="Attack frequency: ")
+        freq.grid(column=0, row=0, sticky=W)
+        self.freq_te = Entry(arp_header, width=10)
+        self.freq_te.grid(column=1, row=0)
+        freq_ex = tk.Label(arp_header, text="default: 10 s", fg="gray", justify=tk.LEFT)
+        freq_ex.grid(column=1, row=1)
+
+        ## Target IP
+        pkt_cnt = ttk.Label(arp_header, text="Amount of packets: ")
+        pkt_cnt.grid(column=0, row=2, sticky=W, pady=3)
+        self.pkt_cnt_te = Entry(arp_header, width=10)
+        self.pkt_cnt_te.grid(column=1, row=2, pady=3)
+        pkt_ex = tk.Label(arp_header, text="default: 1000", fg="gray", justify=tk.LEFT)
+        pkt_ex.grid(column=1, row=3)
 
         # Submit button
-        start_att_arp = ttk.Button(self.tab2, text="Send packet")
+        start_att_arp = ttk.Button(self.tab2, text="Start attack")
         start_att_arp.grid(column=0, row=2)
         start_att_arp["command"] = self.start_arp
-        
+
         # Scan devices Section ARP
         label_scan = ttk.LabelFrame(self.tab2, text="Scan network")
         label_scan.grid(column=1, row=0, rowspan=4, padx=10, pady=10, ipadx=1, sticky=W)
@@ -81,7 +88,8 @@ class Application(Tk):
         scan_network_txt = ttk.Label(label_scan, text="Scan the network connection to show all connected devices.")
         scan_network_txt.grid(column=0, row=0, columnspan=2, padx=2, sticky=W)
 
-        self.scan_network_box = Listbox(label_scan, width=70)
+        self.scan_network_box = Listbox(label_scan, width=50, font=('Consolas', 9))
+        self.scan_network_box.insert(0, "MAC:                     IP:                          ")
         self.scan_network_box.grid(column=0, row=2, columnspan=2, padx=2, pady=3)
 
         scan_network_btn = ttk.Button(label_scan, width=20, text="Start network scan",
@@ -106,7 +114,7 @@ class Application(Tk):
         self.domain_te = Entry(spoof, width=20)
         self.domain_te.grid(column=1, row=0)
 
-        domain_txt_ex = ttk.Label(spoof, text="e.g. www.google.com ")
+        domain_txt_ex = tk.Label(spoof, text="e.g. www.google.com ", fg="gray", justify=tk.LEFT)
         domain_txt_ex.grid(column=1, row=1, sticky=W)
 
         ip_to_use_txt = ttk.Label(spoof, text="IP address to insert: ")
@@ -120,32 +128,66 @@ class Application(Tk):
         start_att_dns["command"] = self.start_dns
 
     def start_scan(self):
-        self.scan_network_box.delete(0, END)
-        for item in ["one", "two", "three", "four", "one", "two", "three", "four"]:
-            self.scan_network_box.insert(END, item)  # WRONG STILL
+        listbox = self.scan_network_box
+        ns = NetworkScan.NetworkScan
+        self.scan_network_box.delete(1, END)
+
+        ns.scan(listbox)
+
+        return
 
     def start_arp(self):
-        src = self.src_te.get()
-        dst = self.dst_te.get()
-        hwsrc = self.hwsrc_te.get()
-        psrc = self.psrc_te.get()
-        hwdst = self.hwsrc_te.get()
-        pdst = self.pdst_te.get()
-        if src and dst and hwsrc and psrc and hwdst and pdst:
-            print("u passed the if statement")
-            ARP.ARP.poison(src, dst, hwsrc, psrc, hwdst, pdst)
-        else:
-            print("not everything is filled in")
+        # Initialize parameters
+        chars_ip = set('0123456789.')
+        chars_mac = set('0123456789abcdef:')
+        g_ip = self.g_ip_te.get() #"192.168.56.102"
+        g_mac = self.g_mac_te.get() #"08:00:27:a5:77:05"
+        t_ip = self.t_ip_te.get() #"192.168.56.101"
+        t_mac = self.t_mac_te.get() #"08:00:27:52:4c:a4"
+        freq = self.freq_te.get()
+        pkt_cnt = self.pkt_cnt_te.get()
+
+        # Check for valid characters
+        if not(g_ip or g_mac or t_ip or t_mac):
+            messagebox.showerror("Error", "Not every required field is filled in.")
+            return
+        if not any(((c in chars_ip) for c in g_ip and t_ip)):
+            messagebox.showerror("Error", "Invalid input, only numbers and dots are allowed for IP Addresses.")
+            return
+        if not any(((c in chars_mac) for c in g_mac and t_mac)):
+            messagebox.showerror("Error", "Invalid input, only hexadecimal values and : are allowed for MAC Addresses.")
+            return
+        if not any(((c.isdigit()) for c in freq and pkt_cnt)):
+            messagebox.showerror("Error", "Invalid input, only numbers are allowed for frequency and packet count.")
+            return
+        if not freq:
+            freq = 10
+        if not pkt_cnt:
+            pkt_cnt = 1000
+
+        # Start the attack
+        ARP.ARPattack.start_attack(g_ip, g_mac, t_ip, t_mac, freq, pkt_cnt)
+
         return
 
     def start_dns(self):
+        # Initialize parameters
+        chars_ip = set('0123456789.')
+        dns = DNS.DNS
         domain = self.domain_te.get()
         ip = self.ip_to_use_te.get()
-        if domain and ip:
-            print("oi m8")
-            DNS.DNS.spoof(domain, ip)
-        else:
-            print("not everything filled in DNS fam")
+
+        # Check for valid characters
+        if not(domain and ip):
+            messagebox.showerror("Error", "Not every required field is filled in.")
+            return
+        if not any(((c in chars_ip) for c in ip)):
+            messagebox.showerror("Error", "Invalid input, only numbers and dots are allowed for IP Addresses.")
+            return
+
+        # Start the attack
+        dns.spoof(domain, ip)
+
         return
 
 
