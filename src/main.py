@@ -10,11 +10,13 @@ import tkinter as tk
 
 class Application(Tk):
     def __init__(self):
+        # Set window title, size, and resizability
         super(Application, self).__init__()
         self.title("Spoofbob DNSpants")
         self.minsize(400, 480)
         self.resizable(0, 0)
 
+        # Creates the tabs via a Notebook
         tab_control = ttk.Notebook(self)
 
         self.tab1 = ttk.Frame(tab_control)      # About
@@ -27,6 +29,7 @@ class Application(Tk):
 
         tab_control.pack(expand=1, fill="both")
 
+        # Set parameters used throughout
         self.scan_ip = []
         self.scan_mac = []
         self.target_ip = []
@@ -37,9 +40,9 @@ class Application(Tk):
         self.bool_spoof_all = False
 
         """ About tab interface """
-        bigtitle = ttk.Label(self.tab1, text="Spoofbob DNSpants", font=("Arial", 24, "bold"),
+        big_title = ttk.Label(self.tab1, text="Spoofbob DNSpants", font=("Arial", 24, "bold"),
                              foreground="red", justify=tk.CENTER)
-        bigtitle.grid(column=0, row=0, padx=10, pady=10)
+        big_title.grid(column=0, row=0, padx=10, pady=10)
 
         # About the creators of the tool
         intro = ttk.LabelFrame(self.tab1, text="Introduction")
@@ -228,6 +231,9 @@ class Application(Tk):
         self.stop_att_dns["command"] = self.stop_dns
         self.stop_att_dns["state"] = tk.DISABLED
 
+    """" The functions that create dependencies between objects / classes """
+
+    # Starts NetworkScan.py to scan the network for devices
     def start_scan(self):
         # Initialize parameters
         listbox = self.scan_network_box
@@ -244,6 +250,7 @@ class Application(Tk):
         scan_thread.join
         return
 
+    # Targets selected devices in the listbox
     def target_selected(self):
         # Initialize parameters
         listbox = self.scan_network_box
@@ -263,6 +270,7 @@ class Application(Tk):
         print(self.target_ip)
         print(self.target_mac)
 
+    # Targets all devices in the listbox
     def target_all(self):
         # Initialize parameters
         listbox = self.scan_network_box
@@ -283,7 +291,9 @@ class Application(Tk):
         print(self.target_ip)
         print(self.target_mac)
 
+    # Adds domains from the entry box
     def add_domain(self):
+        # Set parameters
         domain = self.domain_te.get()
         list = self.domain_box
         targets = self.domainlist
@@ -293,18 +303,22 @@ class Application(Tk):
             list.insert(END, domain)
             print(domain + " was added")
 
+    # Deletes selected domains
     def del_domain(self):
+        # Set parameters
         list = self.domain_box
         list.selection_clear(0)
         targets = self.domainlist
         listitems = map(int, list.curselection())
+
         for x in listitems:
             del(targets[x - 1])
             print("Selection removed")
             list.delete(list.curselection())
 
+    # Handles the boxes becoming writable/unwritable
     def enable_sniff(self):
-        if not(self.bool_sniff):
+        if not self.bool_sniff:
             self.pkt_cnt.config(state=NORMAL)
             self.pkt_cnt_te.config(state=NORMAL)
             self.pkt_ex.config(state=NORMAL)
@@ -315,8 +329,9 @@ class Application(Tk):
             self.pkt_ex.config(state=DISABLED)
             self.bool_sniff = False
 
+    # Handles the boxes becoming writable/unwritable
     def enable_spoof_all(self):
-        if not(self.bool_spoof_all):
+        if not self.bool_spoof_all:
             self.add_domain_btn.config(state=DISABLED)
             self.remove_domain_btn.config(state=DISABLED)
             self.domain_box.config(state=DISABLED)
@@ -331,6 +346,7 @@ class Application(Tk):
             self.domain_txt_ex.config(state=NORMAL)
             self.bool_spoof_all = False
 
+    # Function that starts ARP poisoning
     def start_arp(self):
         # Initialize parameters
         target_ip = self.target_ip
@@ -356,6 +372,7 @@ class Application(Tk):
         if not pkt_cnt:
             pkt_cnt = 50
 
+        # Set boxes as active/inactive
         self.start_att_arp["state"] = tk.DISABLED
         self.stop_att_arp["state"] = tk.NORMAL
 
@@ -367,12 +384,13 @@ class Application(Tk):
                     attack_thread.start()
         return
 
+    # Function that stops ARP poisoning
     def stop_arp(self):
         # Initialize parameters
+        # Set boxes as active/inactive
         self.start_att_arp["state"] = tk.NORMAL
         self.stop_att_arp["state"] = tk.DISABLED
         target_ip = self.target_ip
-        target_mac = self.target_mac
 
         # Stop the attack
         for x in range(len(target_ip)):
@@ -381,6 +399,7 @@ class Application(Tk):
                     ARP.ARPattack.loop_bool = False
         return
 
+    # Function that starts DNS cache poisoning
     def start_dns(self):
         # Initialize parameters
         chars_ip = set('0123456789.')
@@ -405,6 +424,7 @@ class Application(Tk):
             messagebox.showerror("Error", "Invalid input, only numbers and dots are allowed for IP Addresses.")
             return
 
+        # Set boxes as active/inactive
         self.start_att_dns["state"] = tk.DISABLED
         self.stop_att_dns["state"] = tk.NORMAL
 
@@ -418,8 +438,10 @@ class Application(Tk):
                 spoof_thread.start()
         return
 
+    # Function that stops DNS cache poisoning
     def stop_dns(self):
-        dns = DNS.DNSattack
+        # Set parameters
+        # Set boxes as active/inactive
         domain = self.domainlist
         self.start_att_dns["state"] = tk.NORMAL
         self.stop_att_dns["state"] = tk.DISABLED
@@ -428,6 +450,7 @@ class Application(Tk):
         for x in range(len(domain)):
             ARP.ARPattack.loop_bool = False
             DNS.DNSattack.exit_loop = True
+
 
 if __name__ == '__main__':
     app = Application()
