@@ -36,17 +36,69 @@ class Application(Tk):
         self.bool_sniff = False
         self.bool_spoof_all = False
 
+        """ About tab interface """
+        bigtitle = ttk.Label(self.tab1, text="Spoofbob DNSpants", font=("Arial", 24, "bold"),
+                             foreground="red", justify=tk.CENTER)
+        bigtitle.grid(column=0, row=0, padx=10, pady=10)
+
+        # About the creators of the tool
+        intro = ttk.LabelFrame(self.tab1, text="Introduction")
+        intro.grid(column=0, row=1, padx=10, pady=4, ipadx=1)
+
+        intro_txt = ttk.Label(intro, wraplength=373,
+                              text="Welcome to Spoofbob DNSpants! This tool provides the user the ability to perform"
+                                   " ARP poisoning and DNS spoofing on targets within a Local Area Network. \n\n"
+                                   "This tool was made for educational purposes only. The creators of this tool are "
+                                   "not responsible for any criminal act that is done by the user. Use at own risk!")
+        intro_txt.grid(column=0, row=0, columnspan=2, padx=4, pady=4, sticky=W)
+
+        # About ARP
+        about_arp = ttk.LabelFrame(self.tab1, text="ARP poisoning")
+        about_arp.grid(column=0, row=2, padx=10, pady=4, ipadx=1)
+
+        about_arp_txt = ttk.Label(about_arp, wraplength=368,
+                                  text="Enables the user to see communication between two or more devices on the "
+                                       "network. This is done by poisoning the ARP tables of each victim. "
+                                       "The IP address of other victims in the table will contain your own MAC address,"
+                                       " so all traffic will have to go to you first. \nSee README for "
+                                       "a step-to-step instruction. ")
+
+        about_arp_txt.grid(column=0, row=0, columnspan=2, padx=4, pady=4, sticky=W)
+
+        # About DNS
+        about_dns = ttk.LabelFrame(self.tab1, text="DNS cache poisoning")
+        about_dns.grid(column=0, row=3, padx=10, pady=4, ipadx=1)
+
+        about_dns_txt = ttk.Label(about_dns, wraplength=368,
+                                  text="Enables the user to redirect victims on the network to the wrong website by "
+                                       "DNS packet manipulation. This is done by ARP poisoning the Local DNS and "
+                                       "Authoritative DNS and investigating their traffic. \n"
+                                       "See README for a step-to-step instruction.")
+
+        about_dns_txt.grid(column=0, row=0, columnspan=2, padx=4, pady=4, sticky=W)
+
+        # About Creaters
+        about_creators = ttk.LabelFrame(self.tab1, text="The creators")
+        about_creators.grid(column=0, row=4, padx=10, pady=4, ipadx=1)
+
+        about_creators_txt = ttk.Label(about_creators, wraplength=370,
+                                       text="This tool was created by John van Lith and Isilsu Keles for "
+                                            "the Lab Project assignment of the course Lab on Offensive Computer "
+                                            "Security at Eindhoven University of Technology.")
+
+        about_creators_txt.grid(column=0, row=0, columnspan=2, padx=4, pady=4, sticky=W)
+
         """ ARP Poisoning tab interface """
         # Scan devices Section ARP
         label_scan = ttk.LabelFrame(self.tab2, text="Scan network")
-        label_scan.grid(column=0, row=0, columnspan=2, padx=10, pady=10, ipadx=1)
+        label_scan.grid(column=0, row=0, columnspan=2, padx=14, pady=10, ipadx=1)
 
         ## Scan network
         scan_network_txt = ttk.Label(label_scan, text="Scan the network connection to show all connected devices.")
         scan_network_txt.grid(column=0, row=0, columnspan=2, padx=2, sticky=W)
 
         ## The listbox
-        self.scan_network_box = Listbox(label_scan, width=51, selectmode='multiple', font=('Consolas', 9))
+        self.scan_network_box = Listbox(label_scan, width=51, height=12, selectmode='multiple', font=('Consolas', 9))
         self.scan_network_box.insert(0, "MAC:                     IP:                     ")
         self.scan_network_box.itemconfig(0, fg="gray")
         self.scan_network_box.grid(column=0, row=2, columnspan=3, padx=2, pady=3)
@@ -72,7 +124,7 @@ class Application(Tk):
 
         ## Attack frequency
         freq = ttk.Label(additional_header, text="Attack period:      ")
-        freq.grid(column=0, row=0, padx=3, pady=3, sticky=W)
+        freq.grid(column=0, row=0, padx=3, pady=5, sticky=W)
         self.freq_te = Entry(additional_header, width=12)
         self.freq_te.grid(column=1, row=0)
         freq_ex = tk.Label(additional_header, text="Default: 10 s          ", fg="gray", anchor=W)
@@ -88,27 +140,29 @@ class Application(Tk):
         self.pkt_cnt = ttk.Label(additional_header, text="Amount of packets:  ", state=DISABLED)
         self.pkt_cnt.grid(column=0, row=3, padx=3, pady=3, sticky=W)
         self.pkt_cnt_te = Entry(additional_header, width=12, state=DISABLED)
-        self.pkt_cnt_te.grid(column=1, row=3, pady=3)
-        self.pkt_ex = tk.Label(additional_header, text="  Default: 50 pkts       ", fg="gray", justify=LEFT, state=DISABLED)
+        self.pkt_cnt_te.grid(column=1, row=3, pady=5)
+        self.pkt_ex = tk.Label(additional_header, text="  Default: 50 pkts       ",
+                               fg="gray", justify=LEFT, state=DISABLED)
         self.pkt_ex.grid(column=2, row=3)
 
         # Start attack button
         self.start_att_arp = ttk.Button(self.tab2, text="Start attack", width=21)
-        self.start_att_arp.grid(column=0, row=3)
+        self.start_att_arp.grid(column=0, row=3, pady=13)
         self.start_att_arp["command"] = self.start_arp
 
         # Stop attack button
         self.stop_att_arp = ttk.Button(self.tab2, text="Stop attack", state=DISABLED, width=21)
-        self.stop_att_arp.grid(column=1, row=3)
+        self.stop_att_arp.grid(column=1, row=3, pady=13)
         self.stop_att_arp["command"] = self.stop_arp
 
         """ DNS Spoofing tab interface """
         # Target domains Section ARP
         label_domain = ttk.LabelFrame(self.tab3, text="Target domains")
-        label_domain.grid(column=0, row=0, columnspan=2, padx=10, pady=10, ipadx=1)
+        label_domain.grid(column=0, row=0, columnspan=2, padx=14, pady=10, ipadx=1)
 
         ## Target text
-        scan_network_txt = ttk.Label(label_domain, text=" Enter the domain(s) to be spoofed:                                      ")
+        scan_network_txt = ttk.Label(label_domain, text=" Enter the domain(s) to be spoofed:"
+                                                        "                                      ")
         scan_network_txt.grid(column=0, row=0, columnspan=4, padx=2, pady=2)
 
         ## Enter domain to be spoofed
@@ -128,7 +182,7 @@ class Application(Tk):
         self.remove_domain_btn.grid(column=3, row=2, padx=2, pady=5)
 
         ## The listbox
-        self.domain_box = Listbox(label_domain, width=51, font=('Consolas', 9))
+        self.domain_box = Listbox(label_domain, width=51, height=11, font=('Consolas', 9))
         self.domain_box.insert(0, "Domain Name")
         self.domain_box.itemconfig(0, fg="gray")
         self.domain_box.grid(column=0, row=3, columnspan=4, padx=2, pady=3)
@@ -140,8 +194,8 @@ class Application(Tk):
         self.check_spoof["command"] = self.enable_spoof_all
 
         # Spoofing Section
-        spoof = ttk.LabelFrame(self.tab3, text="Spoofing options")
-        spoof.grid(column=0, row=1, columnspan=2, padx=10, pady=2, ipadx=1, sticky=W)
+        spoof = ttk.LabelFrame(self.tab3, text="IP Address configuration")
+        spoof.grid(column=0, row=1, columnspan=2, padx=14, pady=10, ipadx=1, sticky=W)
 
         ## Enter IP of ns dns
         rec_dns_txt = ttk.Label(spoof, text="  Local DNS IP to poison: ")
@@ -161,16 +215,16 @@ class Application(Tk):
         ip_to_use_txt = ttk.Label(spoof, text="  IP address to insert: ")
         ip_to_use_txt.grid(column=0, row=3, sticky=W)
         self.ip_to_use_te = Entry(spoof, width=20)
-        self.ip_to_use_te.grid(column=1, row=3, pady=3, sticky=W)
+        self.ip_to_use_te.grid(column=1, row=3, pady=5, sticky=W)
 
         # Start Spoofing
         self.start_att_dns = ttk.Button(self.tab3, text="Start attack", width=21)
-        self.start_att_dns.grid(column=0, row=2, pady=1)
+        self.start_att_dns.grid(column=0, row=2, pady=13)
         self.start_att_dns["command"] = self.start_dns
 
         # Stop Spoofing
         self.stop_att_dns = ttk.Button(self.tab3, text="Stop attack", width=21)
-        self.stop_att_dns.grid(column=1, row=2, pady=1)
+        self.stop_att_dns.grid(column=1, row=2, pady=13)
         self.stop_att_dns["command"] = self.stop_dns
         self.stop_att_dns["state"] = tk.DISABLED
 
@@ -279,8 +333,6 @@ class Application(Tk):
 
     def start_arp(self):
         # Initialize parameters
-        chars_ip = set('0123456789.')
-        chars_mac = set('0123456789abcdef:')
         target_ip = self.target_ip
         target_mac = self.target_mac
         freq = self.freq_te.get()
