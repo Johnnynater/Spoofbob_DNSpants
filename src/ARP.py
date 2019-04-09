@@ -5,6 +5,7 @@ import time
 from netifaces import *
 import netifaces as ni
 
+
 class ARPattack:
 
     loop_bool = None
@@ -54,7 +55,7 @@ class ARPattack:
         if bool_sniff:
             sniff_filter = "ip dst %s or ip dst %s " %(ip1, ip2)
             print("> ARP: Sniffing active. Starting network capture. Packet Count: %d. Filter: %s" % (int(pkt_cnt),
-                                                                                                     sniff_filter))
+                                                                                                      sniff_filter))
             packets = sniff(filter=sniff_filter, iface=conf.iface, count=int(pkt_cnt))
             wrpcap(ip2 + "_capturelog.pcap", packets)
 

