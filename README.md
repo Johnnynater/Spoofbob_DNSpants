@@ -11,6 +11,8 @@ at Eindhoven University of Technology. Misusing this tool for illegal purposes i
 
 Software required for the application to work and how to install:
 
+- Python 3.5
+    1. Visit https://www.python.org/downloads/ for more information
 - Scapy v2.4.2
     1. Inside your Linux terminal, enter "sudo pip install scapy"
 - Netifaces
