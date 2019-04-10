@@ -1,4 +1,4 @@
-# 2IC80_ARP_DNS
+# Spoofbob DNSpants
 Spoofbob DNSpants is a tool that is able to perform ARP poisoning and DNS cache poisoning within a Local Area Network.
 Development and testing was done inside a Linux VM using VirtualBox. ARP poisoning was performed on a victim
 VM with Windows XP and another victim VM with Debian 9. DNS cache poisoning was performed on the Linux VM, with
